@@ -75,21 +75,20 @@
 <style>
   .container {
     position: relative;
-    width: 100vw;
-    height: 100vh;
+    width: 100dvw;
+    height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
     font-family: sans-serif;
-    background: black;
   }
 
   .circle {
-    width: 30vw;
-    height: 30vw;
-    max-width: 60vh;
-    max-height: 60vh;
+    width: 30dvw;
+    height: 30dvw;
+    max-width: 60dvh;
+    max-height: 60dvh;
     border-radius: 50%;
     background-color: red;
     transition: background-color 0.3s ease;
@@ -102,23 +101,23 @@
 
   .arrow {
     position: absolute;
-    top: 5vh;
+    top: 5dvh;
     left: 50%;
     transform-origin: bottom center;
     width: 0;
     height: 0;
-    margin-left: -2vw;
-    border-left: 2vw solid transparent;
-    border-right: 2vw solid transparent;
-    border-bottom: 6vh solid black;
+    margin-left: -2dvw;
+    border-left: 2dvw solid transparent;
+    border-right: 2dvw solid transparent;
+    border-bottom: 6dvh solid black;
     z-index: 2;
     transition: transform 0.2s linear;
   }
 
   .info {
     position: absolute;
-    bottom: 2vh;
-    left: 2vw;
+    bottom: 2dvh;
+    left: 2dvw;
     background: rgba(255, 255, 255, 0.8);
     padding: 1em;
     border-radius: 8px;
