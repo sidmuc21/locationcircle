@@ -3,6 +3,7 @@
   import { isPointWithinRadius, getGreatCircleBearing } from 'geolib';
 
   let userCoords = { latitude: null, longitude: null };
+  let inRange = false;
   let bearingToTarget = 0;
 
   const targetCoords = {
@@ -21,10 +22,12 @@
         userCoords.latitude = pos.coords.latitude;
         userCoords.longitude = pos.coords.longitude;
 
-        inRange = isPointWithinRadius(userCoords, targetCoords, 5);
+        if (userCoords.latitude != null && userCoords.longitude != null) {
+          inRange = isPointWithinRadius(userCoords, targetCoords, 5);
 
-        if (!inRange) {
-          bearingToTarget = getGreatCircleBearing(userCoords, targetCoords);
+          if (!inRange) {
+            bearingToTarget = getGreatCircleBearing(userCoords, targetCoords);
+          }
         }
       },
       (err) => {
@@ -42,6 +45,7 @@
     startWatching();
   });
 </script>
+
 
 <!-- UI -->
 <div class="container">
