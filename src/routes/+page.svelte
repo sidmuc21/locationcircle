@@ -30,8 +30,8 @@
         if (userCoords.latitude != null && userCoords.longitude != null) {
           inRange = isPointWithinRadius(userCoords, targetCoords, 5);
 
-          distanceToTarget = getDistance(userCoords, targetCoords); // meters
-          bearingToTarget = getGreatCircleBearing(userCoords, targetCoords);
+          distanceToTarget = Math.round(getDistance(userCoords, targetCoords)); // meters, rounded
+          bearingToTarget = Math.round(getGreatCircleBearing(userCoords, targetCoords)); // degrees, rounded
         }
       },
       (err) => {
@@ -68,6 +68,7 @@
     <p>📍 Lat: {userCoords.latitude}</p>
     <p>📍 Lon: {userCoords.longitude}</p>
     <p>📏 Distance: {distanceToTarget} meters</p>
+    <p>🧭 Direction to target: {bearingToTarget}°</p>
   </div>
 </div>
 
@@ -81,6 +82,7 @@
     align-items: center;
     overflow: hidden;
     font-family: sans-serif;
+    background: black;
   }
 
   .circle {
