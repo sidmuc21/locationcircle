@@ -1,10 +1,15 @@
 <script>
   import { onMount } from 'svelte';
-  import { isPointWithinRadius, getGreatCircleBearing } from 'geolib';
+  import {
+    isPointWithinRadius,
+    getGreatCircleBearing,
+    getDistance
+  } from 'geolib';
 
   let userCoords = { latitude: null, longitude: null };
   let inRange = false;
   let bearingToTarget = 0;
+  let distanceToTarget = null;
 
   const targetCoords = {
     latitude: 42.05913363079434,
@@ -25,9 +30,8 @@
         if (userCoords.latitude != null && userCoords.longitude != null) {
           inRange = isPointWithinRadius(userCoords, targetCoords, 5);
 
-          if (!inRange) {
-            bearingToTarget = getGreatCircleBearing(userCoords, targetCoords);
-          }
+          distanceToTarget = getDistance(userCoords, targetCoords); // meters
+          bearingToTarget = getGreatCircleBearing(userCoords, targetCoords);
         }
       },
       (err) => {
@@ -46,7 +50,6 @@
   });
 </script>
 
-
 <!-- UI -->
 <div class="container">
   <!-- Circle changes color based on proximity -->
@@ -59,6 +62,13 @@
       style="transform: rotate({bearingToTarget}deg);"
     ></div>
   {/if}
+
+  <!-- Coordinates and Distance Info -->
+  <div class="info">
+    <p>📍 Lat: {userCoords.latitude}</p>
+    <p>📍 Lon: {userCoords.longitude}</p>
+    <p>📏 Distance: {distanceToTarget} meters</p>
+  </div>
 </div>
 
 <style>
@@ -70,6 +80,7 @@
     justify-content: center;
     align-items: center;
     overflow: hidden;
+    font-family: sans-serif;
   }
 
   .circle {
@@ -88,17 +99,29 @@
   }
 
   .arrow {
-  position: absolute;
-  top: 5vh;
-  left: 50%;
-  transform-origin: bottom center;
-  width: 0;
-  height: 0;
-  margin-left: -2vw;
-  border-left: 2vw solid transparent;
-  border-right: 2vw solid transparent;
-  border-bottom: 6vh solid black; 
-  z-index: 2;
-  transition: transform 0.2s linear;
-}
+    position: absolute;
+    top: 5vh;
+    left: 50%;
+    transform-origin: bottom center;
+    width: 0;
+    height: 0;
+    margin-left: -2vw;
+    border-left: 2vw solid transparent;
+    border-right: 2vw solid transparent;
+    border-bottom: 6vh solid black;
+    z-index: 2;
+    transition: transform 0.2s linear;
+  }
+
+  .info {
+    position: absolute;
+    bottom: 2vh;
+    left: 2vw;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 1em;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #000;
+  }
 </style>
