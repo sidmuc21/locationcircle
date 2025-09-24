@@ -25,6 +25,11 @@
   let needsOrientationPermission = false;
   let orientationPermissionGranted = false;
 
+  // Battery state
+  let batteryLevel = null;
+  let batteryCharging = null;
+  let battery = null;
+
   function startGeolocation() {
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
       geoWatchId = navigator.geolocation.watchPosition(
@@ -76,6 +81,12 @@
     }
   }
 
+  function updateBatteryInfo() {
+    if (!battery) return;
+    batteryLevel = Math.round(battery.level * 100);
+    batteryCharging = battery.charging;
+  }
+
   onMount(() => {
     startGeolocation();
 
@@ -88,6 +99,17 @@
       window.addEventListener('deviceorientation', handleOrientation, true);
       orientationPermissionGranted = true;
     }
+
+    // Battery API
+    if (navigator.getBattery) {
+      navigator.getBattery().then(batt => {
+        battery = batt;
+        updateBatteryInfo();
+
+        battery.addEventListener('levelchange', updateBatteryInfo);
+        battery.addEventListener('chargingchange', updateBatteryInfo);
+      });
+    }
   });
 
   onDestroy(() => {
@@ -97,11 +119,17 @@
 
     if (typeof window !== 'undefined') {
       window.removeEventListener('deviceorientation', handleOrientation);
+
+      if (battery) {
+        battery.removeEventListener('levelchange', updateBatteryInfo);
+        battery.removeEventListener('chargingchange', updateBatteryInfo);
+      }
     }
   });
 </script>
 
 <style>
+  /* Keep your styles unchanged */
   .container {
     width: 100vw;
     height: 100vh;
@@ -190,6 +218,12 @@
     <p>📱 Beta: {Math.round(beta)}</p>
     <p>📱 Gamma: {Math.round(gamma)}</p>
     <p>➡️ Angepasster Kurs: {Math.round(heading)}°</p>
+
+    {#if batteryLevel !== null}
+      <p>🔋 Akku: {batteryLevel}% {batteryCharging ? '(Lädt)' : '(Nicht lädt)'}</p>
+    {:else}
+      <p>🔋 Akku: Nicht verfügbar</p>
+    {/if}
   </div>
 
   {#if needsOrientationPermission && !orientationPermissionGranted}
