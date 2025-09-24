@@ -94,12 +94,9 @@
   });
 </script>
 
-<!-- UI -->
 <div class="container">
-  <!-- Circle changes color based on proximity -->
   <div class="circle" class:green={inRange}></div>
 
-  <!-- Arrow points to target only when out of range -->
   {#if !inRange}
     <div
       class="arrow"
@@ -107,7 +104,6 @@
     ></div>
   {/if}
 
-  <!-- Info Panel -->
   <div class="info">
     <p>📍 Lat: {userCoords.latitude}</p>
     <p>📍 Lon: {userCoords.longitude}</p>
@@ -117,7 +113,6 @@
     <p>➡️ Adjusted Heading: {Math.round(heading)}°</p>
   </div>
 
-  <!-- iOS Button for Permission -->
   {#if needsOrientationPermission && !orientationPermissionGranted}
     <button class="permission-button" on:click={requestOrientationAccess}>
       Enable Compass
