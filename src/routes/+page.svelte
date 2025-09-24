@@ -30,6 +30,8 @@
   let batteryCharging = null;
   let battery = null;
 
+  let hasVibrated = false;  // to prevent repeated vibrations
+
   function startGeolocation() {
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
       geoWatchId = navigator.geolocation.watchPosition(
@@ -40,7 +42,20 @@
           if (userCoords.latitude && userCoords.longitude) {
             distanceToTarget = getDistance(userCoords, targetCoords);
             bearingToTarget = getGreatCircleBearing(userCoords, targetCoords);
-            inRange = isPointWithinRadius(userCoords, targetCoords, 5);
+            const currentlyInRange = isPointWithinRadius(userCoords, targetCoords, 5);
+
+            // Vibrate on entering range once
+            if (currentlyInRange && !inRange && navigator.vibrate) {
+              navigator.vibrate(500);
+              hasVibrated = true;
+            }
+
+            if (!currentlyInRange) {
+              hasVibrated = false; // reset vibration flag if out of range
+            }
+
+            inRange = currentlyInRange;
+
             heading = (bearingToTarget - alpha + 360) % 360;
           }
         },
@@ -129,7 +144,6 @@
 </script>
 
 <style>
-  /* Keep your styles unchanged */
   .container {
     width: 100vw;
     height: 100vh;
