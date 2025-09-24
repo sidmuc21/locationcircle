@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import {
     isPointWithinRadius,
     getGreatCircleBearing,
@@ -11,10 +11,16 @@
   let bearingToTarget = 0;
   let distanceToTarget = null;
 
+  let alpha = 0; // Compass direction of the phone
+  let heading = 0; // Adjusted direction to face target
+
   const targetCoords = {
     latitude: 42.05913363079434,
     longitude: 19.51725368912721
   };
+
+  let needsOrientationPermission = false;
+  let orientationPermissionGranted = false;
 
   function startWatching() {
     if (!navigator.geolocation) {
@@ -29,9 +35,9 @@
 
         if (userCoords.latitude != null && userCoords.longitude != null) {
           inRange = isPointWithinRadius(userCoords, targetCoords, 5);
-
-          distanceToTarget = Math.round(getDistance(userCoords, targetCoords)); // meters, rounded
-          bearingToTarget = Math.round(getGreatCircleBearing(userCoords, targetCoords)); // degrees, rounded
+          distanceToTarget = Math.round(getDistance(userCoords, targetCoords));
+          bearingToTarget = Math.round(getGreatCircleBearing(userCoords, targetCoords));
+          heading = (bearingToTarget - alpha + 360) % 360;
         }
       },
       (err) => {
@@ -45,8 +51,46 @@
     );
   }
 
+  function handleOrientation(event) {
+    if (typeof event.alpha === 'number') {
+      alpha = event.alpha;
+      heading = (bearingToTarget - alpha + 360) % 360;
+    }
+  }
+
+  function requestOrientationAccess() {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then(state => {
+          if (state === 'granted') {
+            window.addEventListener('deviceorientation', handleOrientation, true);
+            orientationPermissionGranted = true;
+            needsOrientationPermission = false;
+          } else {
+            alert('Orientation permission denied');
+          }
+        })
+        .catch(err => {
+          console.error('Orientation permission error:', err);
+        });
+    }
+  }
+
   onMount(() => {
     startWatching();
+
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // iOS requires user interaction to request permission
+      needsOrientationPermission = true;
+    } else {
+      // Android and others
+      window.addEventListener('deviceorientation', handleOrientation, true);
+      orientationPermissionGranted = true;
+    }
+  });
+
+  onDestroy(() => {
+    window.removeEventListener('deviceorientation', handleOrientation);
   });
 </script>
 
@@ -59,17 +103,26 @@
   {#if !inRange}
     <div
       class="arrow"
-      style="transform: rotate({bearingToTarget}deg);"
+      style="transform: rotate({heading}deg);"
     ></div>
   {/if}
 
-  <!-- Coordinates and Distance Info -->
+  <!-- Info Panel -->
   <div class="info">
     <p>📍 Lat: {userCoords.latitude}</p>
     <p>📍 Lon: {userCoords.longitude}</p>
     <p>📏 Distance: {distanceToTarget} meters</p>
-    <p>🧭 Direction to target: {bearingToTarget}°</p>
+    <p>🧭 Bearing to target: {bearingToTarget}°</p>
+    <p>📱 Alpha (compass): {Math.round(alpha)}°</p>
+    <p>➡️ Adjusted Heading: {Math.round(heading)}°</p>
   </div>
+
+  <!-- iOS Button for Permission -->
+  {#if needsOrientationPermission && !orientationPermissionGranted}
+    <button class="permission-button" on:click={requestOrientationAccess}>
+      Enable Compass
+    </button>
+  {/if}
 </div>
 
 <style>
@@ -82,6 +135,7 @@
     align-items: center;
     overflow: hidden;
     font-family: sans-serif;
+    background: #f9f9f9;
   }
 
   .circle {
@@ -118,11 +172,31 @@
     position: absolute;
     bottom: 2dvh;
     left: 2dvw;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.9);
     padding: 1em;
     border-radius: 8px;
     font-size: 0.9rem;
     line-height: 1.5;
     color: #000;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+
+  .permission-button {
+    position: absolute;
+    top: 2dvh;
+    right: 2dvw;
+    padding: 0.6em 1em;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    z-index: 3;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  .permission-button:hover {
+    background: #0056b3;
   }
 </style>
